@@ -1,6 +1,5 @@
 #!/bin/bash
-#check the reachability of main site and absence of robots.txt
-
+#check the reachability of main site and absence of robots.txt, screenshot main page if robots.txt absent and main page reachable
 autotest=1
 runonfile=0
 
@@ -63,6 +62,7 @@ check_robots_and_site() {
         if [[ "$robots_status" != "200" ]]; then
             echo -e "${BRIGHT_RED}Reachable Main Site but Unreachable robots.txt: ${domain_name}${NO_COLOR} - Robots Status: ${robots_status}"
             echo "${domain_name}" >> results.txt
+            take_screenshot "${domain_name}"
         fi
     fi
 }
@@ -73,6 +73,21 @@ process_domains() {
     while read domain; do
         check_robots_and_site "$domain"
     done < "$filepath"
+}
+
+#screenshot func
+take_screenshot() {
+    local domain_name=$1
+    local screenshot_file="${domain_name}.png"
+    
+    echo -e "${BRIGHT_GREEN}Taking screenshot of ${domain_name}...${NO_COLOR}"
+    wkhtmltoimage --quiet "https://${domain_name}" "${screenshot_file}"
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${BRIGHT_GREEN}Screenshot saved as ${screenshot_file}${NO_COLOR}"
+    else
+        echo -e "${BRIGHT_RED}Failed to take screenshot of ${domain_name}${NO_COLOR}"
+    fi
 }
 
 if [ ${runonfile} -eq 1 ]; then
